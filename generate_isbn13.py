@@ -2,16 +2,19 @@ import barcode
 from barcode.writer import ImageWriter
 from PIL import Image, ImageDraw, ImageFont
 
-def generate_barcode(isbn):
+def clean_isbn_number(isbn):
+    cleaned_number = isbn.replace("-","").replace(" ","").replace(".","")
+    return cleaned_number
 
+def generate_barcode(isbn):
     file_name = f"{isbn}_barcode"
     file_format = "png"
     file_name_with_ext = f"{file_name}.{file_format}"
 
     # ISBN13 = barcode.isxn.InternationalStandardBookNumber13()
 
-    # ISBN13 = barcode.get_barcode_class("ISBN13")
-    image_file = barcode.isxn.InternationalStandardBookNumber13(isbn, writer=ImageWriter())
+    ISBN13 = barcode.get_barcode_class("ISBN13")
+    image_file = ISBN13(isbn, writer=ImageWriter())
 
     writer_options = {
         # "module_width": 0.2, #0.2
@@ -58,8 +61,9 @@ def generate_barcode(isbn):
     img_edit.save(fp=file_name_with_ext, dpi=(600,600))
 
 def main():
-    isbn_num = input(f"What 'ISBN' number will we be using?  ")
-    generate_barcode(isbn=isbn_num)
+    isbn_num_input = input(f"What 'ISBN' number will we be using?  ")
+    cleaned_isbn = clean_isbn_number(isbn=isbn_num_input)
+    generate_barcode(isbn=cleaned_isbn)
 
 if __name__ == "__main__":
     main()
