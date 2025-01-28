@@ -19,7 +19,7 @@ def generate_barcode(isbn):
     writer_options = {
         # "module_width": 0.2, #0.2
         # "module_height":15 , #15
-        "quiet_zone":5, #5
+        "quiet_zone": 5, #5
         # "font_path": "",
         # "font_size": 10,#10
         # "text_distance":20,#5
@@ -27,7 +27,9 @@ def generate_barcode(isbn):
         # "foreground": "#44ff33",
         "write_text": False,
         "center_text": True,
-        "format":"PNG",
+        "format": "PNG",
+        # "margin_top":10,
+        "margin_bottom": 3,
     }
     image_file.save(file_name, options=writer_options)
 
@@ -42,12 +44,11 @@ def generate_barcode(isbn):
 
     # Sets base locations and fonts.
     use_font = ImageFont.truetype(font="SansSerifCollection.ttf", size=42)
-    position= (100, 130)
+    position= (100, 138)
     left, top, right, bottom = draw.textbbox((position), text=image_text, font=use_font)
 
     # Draws first number to image.
     draw.text((25,position[1]), text=first_num, font=use_font, fill="black")
-    print(right)
 
     # Draws number 2-6 and the white space to the image.
     draw.rectangle((left-30, top-5, 235, bottom+10), fill="white")
