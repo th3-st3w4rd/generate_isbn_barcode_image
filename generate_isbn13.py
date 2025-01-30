@@ -1,4 +1,5 @@
 import logging
+from tkinter import *
 
 import barcode
 from barcode.writer import ImageWriter
@@ -12,24 +13,26 @@ logging.basicConfig(
     format="%(levelname)s - %(asctime)s: %(message)s",
 )
 
-def clean_isbn_number(isbn):
+def clean_isbn_number(user_input):
     try:
         logging.info("Cleaning user input.")
-        cleaned_number = isbn.replace("-","").replace(" ","").replace(".","")
+        cleaned_number = user_input.replace("-","").replace(" ","").replace(".","")
         if int(cleaned_number) == False:
             raise
-        return cleaned_number
+        generate_barcode(validated_num=cleaned_number)
+        
+        # return cleaned_number
     except Exception as e:
         logging.error("Failed to clean user input.")
         logging.debug(e)
         exit()
 
 
-def generate_barcode(isbn):
+def generate_barcode(validated_num):
     """Generates & formats ISBN barcode .png from the given ISBN#"""
     try:
         logging.info("Setting file name.")
-        file_name = f"{isbn}_barcode"
+        file_name = f"{validated_num}_barcode"
         file_format = "png"
         file_name_with_ext = f"{file_name}.{file_format}"
     except Exception as e:
@@ -40,7 +43,7 @@ def generate_barcode(isbn):
     try:
         logging.info("Generating barcode.")
         ISBN13 = barcode.get_barcode_class("ISBN13")
-        image_file = ISBN13(isbn, writer=ImageWriter())
+        image_file = ISBN13(validated_num, writer=ImageWriter())
 
         writer_options = {
             # "module_width": 0.2, #0.2
@@ -103,10 +106,30 @@ def generate_barcode(isbn):
         logging.debug(e)
         exit()
 
+
+
 def main():
-    isbn_num_input = input(f"What 'ISBN' number will we be using?  ")
-    cleaned_isbn = clean_isbn_number(isbn=isbn_num_input)
-    generate_barcode(isbn=cleaned_isbn)
+    root = Tk()
+    root.title("ISBN Barcode Generator")
+    x_screen_center = root.winfo_screenwidth() // 2
+    y_screen_center = root.winfo_screenheight() // 2
+    x_window = 400
+    y_window = 200
+
+    root.geometry(f"{x_window}x{y_window}+{x_screen_center}+{y_screen_center}")
+
+    isbn_instructions = Label(root, text="Please enter ISBN #:", font=("Arial", 20))#, width=x_window//2)
+    isbn_num_input = Entry(root, font=("Arial", 20))
+    isbn_submit_button = Button(
+        root,text="Generate Barcode",
+        font=("Arial", 20),
+        command=lambda:clean_isbn_number(user_input=isbn_num_input.get(),
+        ))
+    isbn_instructions.grid(row=0, column=1, padx=x_window//5.3, pady=(20,0))
+    isbn_num_input.grid(row=1, column=1, padx=x_window//40)
+    isbn_submit_button.grid(row=2, column=1, pady=10)
+    root.mainloop()
+
     logging.info("Script completed.")
 
 if __name__ == "__main__":
