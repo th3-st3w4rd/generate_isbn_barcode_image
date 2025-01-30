@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 logging.basicConfig(
     filename="generate_isbn13.log",
-    level=logging.DEBUG,
+    level=logging.INFO,
     filemode="w",
     datefmt="%m/%d/%Y %I:%M:%S %p",
     format="%(levelname)s - %(asctime)s: %(message)s",
