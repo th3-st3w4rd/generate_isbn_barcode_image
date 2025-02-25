@@ -35,7 +35,7 @@ def setup_check():
 def clean_isbn_number(user_input):
     try:
         logging.info("Cleaning user input.")
-        cleaned_number = user_input.replace("-","").replace(" ","").replace(".","")
+        cleaned_number = user_input.strip().replace("-","").replace(" ","").replace(".","")
         if int(cleaned_number) and len(cleaned_number) == 13:
             generate_barcode(validated_num=cleaned_number)
         else:
@@ -57,7 +57,6 @@ def generate_barcode(validated_num):
         file_name_with_ext = f"{file_name}.{file_format}"
         desktop = Path(os.getenv("USERPROFILE")).joinpath("Desktop")
         final_file_location = desktop.joinpath(file_name_with_ext)
-        # print(final_file_location)
     except Exception as e:
         logging.error("Failed to set filename.")
         logging.debug(e)
@@ -149,7 +148,10 @@ def main():
     root.configure(background="#dfdfdf")
     root.geometry(f"{x_window}x{y_window}+{x_screen_center}+{y_screen_center}")
     root.resizable(0,0)
-    root.iconbitmap(f"{icon}\\icon.ico")
+    try:
+        root.iconbitmap(f"{icon}\\icon.ico")
+    except:
+        logging.error("No icon image available.")
 
     isbn_instructions = Label(root, text="Please enter ISBN13 #:", font=("Arial", 20), background="#dfdfdf")
     isbn_num_input = Entry(root, font=("Arial", 20))
