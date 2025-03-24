@@ -17,9 +17,9 @@ Every time the script runs, there is a corresponding log file located in the sam
                         Turn GUI On (1 default) or Off (0).
   -i ISBN, --isbn ISBN  Specifies the ISBN13 number to use.
   -d {300,400,600,800,1200}, --dpi {300,400,600,800,1200}
-                        Specifies DPI of image output.
+                        Specifies DPI of image output.  
   -f {png,jpeg}, --file-format {png,jpeg}
-                        File output format i.e. png, jpeg.
+                        File output format i.e. png, jpeg.  
 
 ### python-barcode
 
