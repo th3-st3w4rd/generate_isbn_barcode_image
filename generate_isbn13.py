@@ -4,6 +4,7 @@ import tkinter.messagebox
 import os
 from pathlib import Path
 import sys
+import argparse
 
 import barcode
 from barcode.writer import ImageWriter
@@ -37,7 +38,8 @@ def clean_isbn_number(user_input):
         logging.info("Cleaning user input.")
         cleaned_number = user_input.strip().replace("-","").replace(" ","").replace(".","")
         if int(cleaned_number) and len(cleaned_number) == 13:
-            generate_barcode(validated_num=cleaned_number)
+            return cleaned_number
+            #generate_barcode(validated_num=cleaned_number)
         else:
             logging.error(f"The ISBN13 # was not 13 digits long or contained a character other than a number.")
             raise
@@ -48,12 +50,12 @@ def clean_isbn_number(user_input):
         tkinter.messagebox.showinfo("Error!", "Entry might have been empty.\nFailed to clean user input.")
         exit()
 
-def generate_barcode(validated_num):
+def generate_barcode(validated_num, dpi=600, output_file_format="png"):
     """Generates & formats ISBN barcode .png from the given ISBN#"""
     try:
         logging.info("Setting file name.")
         file_name = f"{validated_num}_barcode"
-        file_format = "png"
+        file_format = output_file_format
         file_name_with_ext = f"{file_name}.{file_format}"
         desktop = Path(os.getenv("USERPROFILE")).joinpath("Desktop")
         final_file_location = desktop.joinpath(file_name_with_ext)
@@ -68,9 +70,9 @@ def generate_barcode(validated_num):
         image_file = ISBN13(validated_num, writer=ImageWriter())
 
         writer_options = {
-            # "module_width": 0.2, #0.2
-            # "module_height":15 , #15
-            "quiet_zone": 5, #5
+            "module_width": 0.9, #0.2
+            "module_height":45 , #15
+            "quiet_zone": 10, #5
             # "font_path": "",
             # "font_size": 10,#10
             # "text_distance":20,#5
@@ -78,9 +80,9 @@ def generate_barcode(validated_num):
             # "foreground": "#44ff33",
             "write_text": False,
             "center_text": True,
-            "format": "PNG",
-            # "margin_top":10,
-            "margin_bottom": 3,
+            "format": file_format.upper(),
+            "margin_top":6,#10
+            "margin_bottom": 8,
         }
         image_file.save(desktop.joinpath(file_name), options=writer_options)
     except Exception as e:
@@ -107,9 +109,17 @@ def generate_barcode(validated_num):
 
         # Sets base locations and fonts.
         logging.info("Setting the font type and size.")
-        use_font = ImageFont.truetype(font="arial.ttf", size=42)
-        position= (100, 165)
+        use_font = ImageFont.truetype(font="arial.ttf", size=42*3)
+        print(img_edit.size)
+        #position = (100, 536)
+        position = (img_edit.size[0]//12, img_edit.size[1]*.78)
         left, top, right, bottom = draw.textbbox((position), text=image_text, font=use_font)
+        print(f"position: {position}")
+        print(f"left: {left}")
+        print(f"top: {top}")
+        print(f"right: {right}")
+        print(f"bottom: {bottom}")
+
 
         # Draws first number to image.
         logging.info("Drawing first digit to the image.")
@@ -117,17 +127,17 @@ def generate_barcode(validated_num):
 
         # Draws number 2-6 and the white space to the image.
         logging.info("Drawing numbers 2-6 and the white space to the image.")
-        draw.rectangle((left-30, top-5, 235, bottom+10), fill="white")
-        draw.text((position[0]-20, position[1]), text=second_nums, font=use_font, fill="black")
+        draw.rectangle((left+55, top-15, left+480, bottom+10), fill="white")
+        draw.text((left+60, top-30), text=second_nums, font=use_font, fill="black")
 
         # Draws number 7-13 and the white space to the image.
         logging.info("Drawing numbers 7-13 and the white space to the image.")
-        draw.rectangle((250, top-5, right+15, bottom+10), fill="white")
-        draw.text((265, position[1]), text=third_nums, font=use_font, fill="black")
+        draw.rectangle((left+545, top-15, left+980, bottom+10), fill="white")
+        draw.text((left+560, top-30), text=third_nums, font=use_font, fill="black")
 
         # Saves image at specific DPI.
         logging.info("Saving image at specific DPI.")
-        img_edit.save(fp=final_file_location, dpi=(600,600))
+        img_edit.save(fp=final_file_location, dpi=(dpi,dpi))
         
         tkinter.messagebox.showinfo("New barcode generated!", f"Check your desktop for the barcode's PNG image.\n File Name:'{file_name_with_ext}'")
                 
@@ -137,7 +147,7 @@ def generate_barcode(validated_num):
         tkinter.messagebox.showinfo("Error!", f"Failed to format barcode image output.")
         exit()
 
-def main():
+def start_gui():
     icon = setup_check()
     root = Tk()
     root.title("ISBN Barcode Generator")
@@ -160,13 +170,34 @@ def main():
         font=("Arial", 20),
         relief="ridge",
         borderwidth=5,
-        command=lambda:clean_isbn_number(user_input=isbn_num_input.get(),
+        command=lambda:generate_barcode(clean_isbn_number(user_input=isbn_num_input.get()),
         ))
 
     isbn_instructions.grid(row=0, column=1, padx=x_window//7, pady=(20,0))
     isbn_num_input.grid(row=1, column=1, padx=x_window//45, pady=10)
     isbn_submit_button.grid(row=2, column=1, pady=10)
     root.mainloop()
+
+def cli_only(isbn, ext, dpi):
+    logging.info("Starting in 'command line only' mode.")
+    return generate_barcode(validated_num=clean_isbn_number(isbn), dpi=dpi, output_file_format=ext)
+    
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-g", "--gui", type=int, choices=[0,1], default=1, help="Turn GUI On (1 default) or Off (0).")
+    parser.add_argument("-i", "--isbn", help="Specifies the ISBN13 number to use.")
+    parser.add_argument("-d", "--dpi", type=int, choices=[300, 400, 600, 800, 1200], default=600, help="Specifies DPI of image output.")
+    parser.add_argument("-f", "--file-format", choices=["png", "jpeg"], default="png", help="File output format i.e. png, jpeg.")
+
+    args = parser.parse_args()
+    print(args)
+    if args.gui:
+        start_gui()
+    elif not args.gui:
+        cli_only(isbn=args.isbn, ext=args.file_format, dpi=args.dpi)
+
+    
 
     logging.info("Script completed.")
 
